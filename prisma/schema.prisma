@@ -1,0 +1,56 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Users {
+  userId   Int    @id @default(autoincrement()) @map("userId") // 사용자의 고유 식별자로, 자동으로 증가하는 정수.
+  email    String @unique @map("email") // 사용자의 이메일 주소를 나타냄, unique제약이 있어 중복되지 않아야 한다.
+  password String @map("password") // 사용자 비밀번호
+  name     String @map("name") // 사용자 이름
+
+  resumes       Resumes[] // 사용자와 이력서 간의 일대 다 관계를 나타냄.
+  refreshTokens RefreshTokens[] // 사용자와 리프레시 토큰과 일대 다 관계를 나타냄
+
+  @@map("Users") // 데이터베이스의 스키마와 prisma 모델 간의 일치를 보장하고 데이터베이스 조작을 수행할 때 일관성을 유지하는 데 도움이 된다.
+}
+
+model Resumes {
+  resumeId  Int      @id @default(autoincrement()) @map("resumeId") // 이력서 고유 식별자로, 자동으로 증가하는 정수입니다.
+  userId    Int      @map("userId") // 사용자의 고유 식별자를 나타내며, Users모델과의 관계를 통해 사용자와 이력서간의 일대다 관계를 나타냅니다. 
+  title     String   @map("title") // 이력서 제목
+  comment   String   @map("comment") @db.Text // 이력서에 대한 주석 또는 설명.
+  status    Status   @default(APPLY) @map("status") // 이력서의 상태를 정의하는 enum
+  createdAt DateTime @default(now()) @map("createdAt") // 생성된 날짜 및 시간.
+
+  user Users @relation(fields: [userId], references: [userId], onDelete: Cascade) //데이터베이스의 무결성을 유지하고 연결된 데이터 간의 일관성을 유지하는데 도움이 됩니다. 
+
+  @@map("Resumes")
+}
+
+enum Status {
+  APPLY
+  DROP
+  PASS
+  INTERVIEW1
+  INTERVIEW2
+  FINAL_PASS
+}
+
+model RefreshTokens {
+  tokenId   Int      @id @default(autoincrement()) @map("resumeId") // 리프레시 토큰의 고유 식별자로, 자동으로 증가하는 정수.
+  userId    Int      @map("userId")
+  token     String   @map("token") // 리프레시 토큰 자체를 나타냅니다.
+  createdAt DateTime @default(now()) @map("createdAt") // 리프레시 토큰이 생성된 날짜 및 시간을 나타냅니다.
+
+  user Users @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  @@map("RefreshTokens")
+}
