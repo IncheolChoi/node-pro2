@@ -3,6 +3,7 @@ import cookieParser from "cookie-parser";
 import UsersRouter from "./routers/users.router.js";
 import DocumentRouter from "./routers/documents.router.js";
 
+
 const app = express();
 const PORT = 3018;
 
@@ -12,7 +13,7 @@ app.use(cookieParser());
 app.use("/api", [UsersRouter, DocumentRouter]);
 
 app.listen(PORT, () => {
-  console.log(PORT, "포트로 서버가 열렸습니다.");
+  console.log(PORT, "포트가 열렸습니다.")
 });
 
 // import express from "express";
