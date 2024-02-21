@@ -1,52 +1,37 @@
-import jwt from 'jsonwebtoken';
-import { prisma } from '../models/index.js';
-import dotenv from 'dotenv';
+import jwt from "jsonwebtoken";
+import { prisma } from "../models/index.js";
 
-dotenv.config();
-
-export default async function (req, res, next) {
-  function validateToken(token, secretkey) {
-    try {
-      return jwt.verify(token, secretkey);
-    } catch (err) {
-      return null;
-    }
-  }
+export const authMiddleware = async function (req, res, next) {
   try {
     const { authorization } = req.cookies;
-    if (!authorization) {
-      const { refresh } = req.cookies;
-
-      if (!refresh) throw new Error('Refresh Token이 존재하지 않습니다.');
-
-      const payload = validateToken(refresh, process.env.REFRESH_SecretKey);
-      if (!payload) throw new Error('Refresh Token이 정상적이지 않습니다');
-
-      const userInfo = await prisma.refreshTokens.findMany({
-        where: { userId: payload.userId },
-      });
-
-      if (userInfo.length === 0) {
-        return res.status(404).json({
-          message: 'Refresh Token의 정보가 서버에 존재하지 않습니다.',
-        });
-      }
-
-      const newaccessToken = jwt.sign(
-        { userId: payload.userId },
-        process.env.ACCESS_SecretKey,
-        {
-          expiresIn: '12h',
-        }
-      );
-      res.cookie('authorization', `Bearer ${newaccessToken}`);
+    if (!authorization) throw new Error("토큰이 존재하지 않습니다.");
+    const [tokenType, token] = authorization.split(" ");
+    if (tokenType !== "Bearer")
+      throw new Error("토큰 타입이 일치하지 않습니다.");
+    const decodedToken = jwt.verify(token, process.env.ACCESS_SecretKey);
+    const { userId } = jwt.verify(token, process.env.ACCESS_SecretKey);
+    const user = await prisma.users.findFirst({
+      where: { userId: +userId },
+    });
+    if (!user) {
+      res.clearCookie("authorization");
+      throw new Error("토큰 사용자가 존재하지 않습니다.");
     }
+    req.user = user;
+
     next();
-  } catch (err) {
-    if (err.name === 'TokenExpiredError') {
-      res.clearCookie('authorization');
-      return res.status(401).json({ message: '토큰이 만료되었습니다.' });
+  } catch (error) {
+    res.clearCookie("authorization");
+    // 토큰이 만료되었거나, 조작되었을 때, 에러 메시지를 다르게 출력합니다.
+    switch (error.name) {
+      case "TokenExpiredError":
+        return res.status(401).json({ message: "토큰이 만료되었습니다." });
+      case "JsonWebTokenError":
+        return res.status(401).json({ message: "토큰이 조작되었습니다." });
+      default:
+        return res
+          .status(401)
+          .json({ message: error.message ?? "비정상적인 요청입니다." });
     }
-    return res.status(500).json({ message: err.message });
   }
-}
+};

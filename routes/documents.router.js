@@ -1,11 +1,12 @@
-import express from 'express';
-import { prisma } from '../models/index.js';
-import jwt from 'jsonwebtoken';
+import express from "express";
+import { prisma } from "../models/index.js";
+import jwt from "jsonwebtoken";
 // import loginMiddleware from '../middlewares/need-signin.middleware.js';
 // import authMiddleware from '../middlewares/auth-middlewares.js';
-import { ResumesRepository } from '../src/repositories/resume.repository.js';
-import { ResumesService } from '../src/services/resume.service.js';
-import { ResumesController } from '../src/controllers/resume.controller.js';
+import { ResumesRepository } from "../src/repositories/resume.repository.js";
+import { ResumesService } from "../src/services/resume.service.js";
+import { ResumesController } from "../src/controllers/resume.controller.js";
+import { authMiddleware } from "../middlewares/auth-middlewares.js";
 
 const router = express.Router();
 
@@ -14,21 +15,18 @@ const resumesService = new ResumesService(resumesRepository);
 // ResumesController의 인스턴스를 생성합니다.
 const resumesController = new ResumesController(resumesService);
 
-
-
-//이력서 생성//
-router.post('/', resumesController.createResume);
 //이력서 조회//
-router.get('/', resumesController.getResumes);
+router.get("/", resumesController.getResumes);
 //이력서 상세 조회//
-router.get('/:resumeId', resumesController.getResumeById);
+router.get("/:resumeId", resumesController.getResumeById);
+//이력서 생성//
+router.post("/", authMiddleware, resumesController.createResume);
 //이력서 수정//
-router.get('/:resumeId', resumesController.updateResume);
+router.put("/:resumeId", resumesController.updateResume);
 //이력서 삭제//
-router.delete('/:resumeId', resumesController.deleteResume);
+router.delete("/:resumeId", resumesController.deleteResume);
 
 export default router;
-
 
 // // 이력서 생성 API
 // router.post(
@@ -140,7 +138,7 @@ export default router;
 //   async (req, res, next) => {
 //     try {
 //       const { userId } = req.user;
-//       const { resumeId } = req.body;                 
+//       const { resumeId } = req.body;
 
 //       const resume = await prisma.resumes.findFirst({
 //         where: { resumeId: resumeId },
@@ -161,4 +159,3 @@ export default router;
 //     }
 //   }
 // );
-
