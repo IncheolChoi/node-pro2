@@ -6,9 +6,7 @@ export class ResumesController {
   //이력서 생성//
   createResume = async (req, res, next) => {
     try {
-      console.log(req.user);
       const { userId } = req.user;
-
       const { title, comment } = req.body;
       //   if (!nickname || !password || !title || !content)
       //   throw new Error('InvalidParamsError');

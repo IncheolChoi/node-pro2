@@ -1,14 +1,14 @@
-// UserRepository.js
-import { prisma } from "../models/index.js";
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+export class UsersRepository {
+  constructor(prisma) {
+    this.prisma = prisma;
+  }
 
-const prisma = new PrismaClient();
-
-//회원가입//
-class UserRepository {
-  async signUp(email, password, repassword, name) {
+  //회원가입//
+  signUp = async (email, password, repassword, name) => {
     try {
-      const isExistUser = await prisma.users.findFirst({
+      const isExistUser = await this.prisma.users.findFirst({
         where: { email },
       });
 
@@ -32,11 +32,11 @@ class UserRepository {
       }
 
       const hashedPassword = await bcrypt.hash(password, 10);
-      const user = await prisma.users.create({
+      const user = await this.prisma.users.create({
         data: { email, password: hashedPassword, name },
       });
 
-      const finishUser = await prisma.users.findFirst({
+      const finishUser = await this.prisma.users.findFirst({
         where: { email },
         select: {
           userId: true,
@@ -52,13 +52,12 @@ class UserRepository {
     } catch (err) {
       throw new Error(err.message);
     }
-  }
-}
-//로그인//
-class UserRepository {
-  async signIn(email, password) {
+  };
+
+  //로그인//
+  signIn = async (email, password) => {
     try {
-      const user = await prisma.users.findFirst({
+      const user = await this.prisma.users.findFirst({
         where: { email },
       });
 
@@ -86,7 +85,7 @@ class UserRepository {
         { expiresIn: "7d" }
       );
 
-      await prisma.refreshTokens.create({
+      await this.prisma.refreshTokens.create({
         data: { userId: user.userId, token: refreshToken },
       });
 
@@ -97,7 +96,5 @@ class UserRepository {
     } catch (err) {
       throw new Error(err.message);
     }
-  }
+  };
 }
-
-module.exports = UserRepository;
