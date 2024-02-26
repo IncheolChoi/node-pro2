@@ -24,9 +24,9 @@ const usersController = new UsersController(usersService);
 // bind()메서드는 객체에 바인딩하여 라우터에서 사용할 수 있도록 할수 있음.
 //  ex) router.post("/sign-up", usersController.signUp.bind(usersController));
 
-router.post("/sign-up", (req, res) => usersController.signUp(req, res));
+router.post("/sign-up", usersController.signUp);
 
-router.post("/sign-in", (req, res) => usersController.signIn(req, res));
+router.post("/sign-in", usersController.signIn);
 
 export default router;
 

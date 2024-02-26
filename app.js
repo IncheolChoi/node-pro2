@@ -17,14 +17,3 @@ app.use(ErrorHandlingMiddleware);
 app.listen(PORT, () => {
   console.log(PORT, "포트가 열렸습니다.");
 });
-
-// import express from "express";
-
-// const app = express();
-
-// app.get('/api',(req,res) => {
-//   return res.status(200).json({message : "asdasd"})
-// })
-//   app.listen(8000, () => {
-//     console.log(`8000`);
-//   })
